@@ -11,6 +11,11 @@ git clone https://github.com/QuickComponents/MediaPicker.git plugins/MediaPicker
 include($$PWD/plugins/MediaPicker/MediaPicker.pri)
 ```
 
+#### Configure main.cpp
+```cpp
+engine.addImportPath("qrc:///");
+```
+
 #### Import in QML
 ```qml
 import QuickComponents 1.0
