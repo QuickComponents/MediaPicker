@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/QuickComponents">
+        <file>qmldir</file>
+        <file>qml/MediaPicker.qml</file>
+    </qresource>
+</RCC>
