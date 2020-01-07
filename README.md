@@ -16,7 +16,14 @@ include($$PWD/plugins/MediaPicker/MediaPicker.pri)
 engine.addImportPath("qrc:///");
 ```
 
-#### Import in QML
+#### Use in QML
 ```qml
 import QuickComponents 1.0
-```
+
+...
+
+MediaPicker {
+    id: mediaPicker
+    contentType: MediaPicker.Image // or MediaPicker.Video
+}
+
