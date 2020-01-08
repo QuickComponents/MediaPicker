@@ -1,13 +1,25 @@
 #include "mediapicker.h"
 #include <QDebug>
 
-static const int PICK_FILE = 0xFFF;
+static const int PICK = 0xFFF;
+static const int CAPTURE = 0x1;
 
 const QString getUriFromJniObject(QAndroidJniObject &uri);
 
 void MediaPickerPlugin::open()
 {
-    // or GET_CONTENT error of permission
+    qWarning() << PICK << CAPTURE;
+    if (m_sourceType == MediaPickerPlugin::Library) {
+        actionPick();
+    } else {
+        actionCamera();
+    }
+}
+
+
+void MediaPickerPlugin::actionPick()
+{
+    // or GET_CONTENT: error of permission
     QAndroidJniObject ACTION_PICK = QAndroidJniObject::fromString("android.intent.action.PICK");
     QAndroidJniObject intent("android/content/Intent");
     if (ACTION_PICK.isValid() && intent.isValid()) {
@@ -29,18 +41,35 @@ void MediaPickerPlugin::open()
         intent.callObjectMethod("setType", "(Ljava/lang/String;)Landroid/content/Intent;",
                                 QAndroidJniObject::fromString(content).object<jstring>());
 
-        QtAndroid::startActivity(intent.object<jobject>(), PICK_FILE, this);
+        QtAndroid::startActivity(intent.object<jobject>(), PICK, this);
+    }
+}
+
+void MediaPickerPlugin::actionCamera()
+{
+    QAndroidJniObject ACTION = QAndroidJniObject::fromString("android.media.action.IMAGE_CAPTURE");
+    QAndroidJniObject intent("android/content/Intent");
+    if (ACTION.isValid() && intent.isValid()) {
+        intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;",
+                                ACTION.object<jstring>());
+        QtAndroid::startActivity(intent.object<jobject>(), CAPTURE,
+        [this](int receiverRequestCode, int resultCode, const QAndroidJniObject &data) {
+            jint RESULT = QAndroidJniObject::getStaticField<jint>("android/app/Activity", "RESULT_OK");
+            if (receiverRequestCode == CAPTURE && resultCode == RESULT) {
+                QAndroidJniObject extras = data.callObjectMethod("getExtras", "()Landroid/content/Bundle;");
+                qWarning() << extras.isValid() << extras.toString();
+            }
+        });
     }
 }
 
 void MediaPickerPlugin::handleActivityResult(int receiverRequestCode, int resultCode, const QAndroidJniObject &data)
 {
     jint RESULT = QAndroidJniObject::getStaticField<jint>("android/app/Activity", "RESULT_OK");
-    if (receiverRequestCode == PICK_FILE && resultCode == RESULT) {
+    if (receiverRequestCode == PICK && resultCode == RESULT) {
         QList<QUrl> urls;
         if (m_selectMultiple && QtAndroid::androidSdkVersion() >= 19) {
             QAndroidJniObject clipData = data.callObjectMethod("getClipData","()Landroid/content/ClipData;");
-            qWarning() << "ClipData" << clipData.toString() << clipData.isValid();
             if (clipData.isValid()) {
                 int clipDataTotal = clipData.callMethod<jint>("getItemCount");
                 for (int i = 0; i < clipDataTotal; ++i) {

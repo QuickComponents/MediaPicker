@@ -28,7 +28,10 @@ ApplicationWindow {
 
                 Button {
                     text: qsTr("Gallery")
-                    onClicked: mediaImagePicker.open()
+                    onClicked: {
+                        mediaImagePicker.sourceType = MediaPicker.Library
+                        mediaImagePicker.open()
+                    }
                 }
 
                 Switch {
@@ -38,9 +41,13 @@ ApplicationWindow {
                 }
             }
 
-//            Button {
-//                text: qsTr("Camera")
-//            }
+            Button {
+                text: qsTr("Camera")
+                onClicked: {
+                    mediaImagePicker.sourceType = MediaPicker.Camera
+                    mediaImagePicker.open()
+                }
+            }
 
             Label {
                 text: `Images Selected: ${JSON.stringify(mediaImagePicker.fileUrls, null, 4)}`
