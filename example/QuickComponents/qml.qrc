@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>FlickablePage.qml</file>
+        <file>ImageCarousel.qml</file>
+    </qresource>
+</RCC>
