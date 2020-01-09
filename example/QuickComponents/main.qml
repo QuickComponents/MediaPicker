@@ -56,6 +56,41 @@ ApplicationWindow {
                 width: parent.width - parent.padding * 2
                 model: JSON.parse(JSON.stringify(mediaImagePicker.fileUrls))
             }
+
+            Label {
+                text: qsTr("Video")
+            }
+
+            Row {
+                width: parent.width
+                spacing: 10
+
+                Button {
+                    text: qsTr("Gallery")
+                    onClicked: {
+                        mediaVideoPicker.sourceType = MediaPicker.Library
+                        mediaVideoPicker.open()
+                    }
+                }
+
+                Switch {
+                    text: qsTr("Select Multiple")
+                    onCheckedChanged: mediaVideoPicker.selectMultiple = !mediaVideoPicker.selectMultiple
+                    checked: mediaVideoPicker.selectMultiple
+                }
+            }
+
+            Button {
+                text: qsTr("Camera")
+                onClicked: {
+                    mediaVideoPicker.sourceType = MediaPicker.Camera
+                    mediaVideoPicker.open()
+                }
+            }
+
+            Label {
+                text: `Videos Selected: ${JSON.stringify(mediaVideoPicker.fileUrls, null, 4)}`
+            }
         }
     }
 

@@ -10,12 +10,15 @@ const QString getUriFromJniObject(QAndroidJniObject &uri);
 
 void MediaPickerPlugin::open()
 {
-    qWarning() << PICK << CAPTURE;
     if (m_sourceType == MediaPickerPlugin::Library) {
         actionPick();
-    } else {
-        actionCamera();
+        return;
     }
+
+    if (m_contentType == MediaPickerPlugin::Image)
+        actionCameraPicture();
+    else
+        actionCameraMovie();
 }
 
 
@@ -70,7 +73,7 @@ void MediaPickerPlugin::actionPick()
     }
 }
 
-void MediaPickerPlugin::actionCamera()
+void MediaPickerPlugin::actionCameraPicture()
 {
     QAndroidJniObject ACTION = QAndroidJniObject::fromString("android.media.action.IMAGE_CAPTURE");
     QAndroidJniObject intent("android/content/Intent");
@@ -100,6 +103,27 @@ void MediaPickerPlugin::actionCamera()
     }
 }
 
+void MediaPickerPlugin::actionCameraMovie()
+{
+    QAndroidJniObject ACTION = QAndroidJniObject::fromString("android.media.action.VIDEO_CAPTURE");
+    QAndroidJniObject intent("android/content/Intent");
+
+    if (ACTION.isValid() && intent.isValid()) {
+        intent.callObjectMethod("setAction", "(Ljava/lang/String;)Landroid/content/Intent;",
+                                ACTION.object<jstring>());
+        QtAndroid::startActivity(intent.object<jobject>(), CAPTURE,
+        [this](int receiverRequestCode, int resultCode, const QAndroidJniObject &data) {
+            Q_UNUSED(this)
+            jint RESULT = QAndroidJniObject::getStaticField<jint>("android/app/Activity", "RESULT_OK");
+            if (receiverRequestCode == CAPTURE && resultCode == RESULT) {
+                QAndroidJniObject uri = data.callObjectMethod("getData", "()Landroid/net/Uri;");
+                QUrl url = QUrl(getUriFromJniObject(uri));
+                setFileUrls(QList<QUrl>() << url);
+            }
+        });
+    }
+}
+
 const QString getUriFromJniObject(QAndroidJniObject &uri) {
     if (uri.toString().startsWith("file://"))
         return uri.toString();
@@ -120,8 +144,8 @@ const QString getUriFromJniObject(QAndroidJniObject &uri) {
         jint columnIndex = cursor.callMethod<jint>("getColumnIndexOrThrow","(Ljava/lang/String;)I", media.object<jstring>());
         QAndroidJniObject path = cursor.callObjectMethod("getString", "(I)Ljava/lang/String;", columnIndex);
 
-        if (!cursor.callMethod<jboolean>("isClosed"))
-            cursor.callObjectMethod("close", "()Z");
+//        if (!cursor.callMethod<jboolean>("isClosed"))
+//            cursor.callObjectMethod("close", "()Z");
 
         if (path.isValid())
             return QString("file://%1").arg(path.toString());

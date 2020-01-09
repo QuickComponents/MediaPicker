@@ -27,7 +27,8 @@ public:
 
 #if defined (Q_OS_ANDROID)
     void actionPick();
-    void actionCamera();
+    void actionCameraPicture();
+    void actionCameraMovie();
 #endif
 
     enum ContentType {
