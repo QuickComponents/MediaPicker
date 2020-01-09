@@ -24,7 +24,6 @@ ApplicationWindow {
             Row {
                 width: parent.width
                 spacing: 10
-                padding: 10
 
                 Button {
                     text: qsTr("Gallery")
@@ -37,7 +36,7 @@ ApplicationWindow {
                 Switch {
                     text: qsTr("Select Multiple")
                     onCheckedChanged: mediaImagePicker.selectMultiple = !mediaImagePicker.selectMultiple
-                    checked: mediaImagePicker.selectMultiple = mediaImagePicker.selectMultiple
+                    checked: mediaImagePicker.selectMultiple
                 }
             }
 

@@ -45,7 +45,7 @@ public:
     inline void setContentType(quint16 content_type) { m_contentType = content_type; emit contentTypeChanged(); }
 
     inline quint16 sourceType() { return m_sourceType; }
-    inline void setSourceType(quint16 source_type) { m_sourceType = source_type; emit contentTypeChanged(); }
+    inline void setSourceType(quint16 source_type) { m_sourceType = source_type; emit sourceTypeChanged(); }
 
     inline bool selectMultiple() { return m_selectMultiple; }
     inline void setSelectMultiple(bool multiple) { m_selectMultiple = multiple; emit selectMultipleChanged(); }
