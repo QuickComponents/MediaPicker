@@ -24,23 +24,29 @@ ApplicationWindow {
             Row {
                 width: parent.width
                 spacing: 10
-                padding: 10
 
                 Button {
                     text: qsTr("Gallery")
-                    onClicked: mediaImagePicker.open()
+                    onClicked: {
+                        mediaImagePicker.sourceType = MediaPicker.Library
+                        mediaImagePicker.open()
+                    }
                 }
 
                 Switch {
                     text: qsTr("Select Multiple")
                     onCheckedChanged: mediaImagePicker.selectMultiple = !mediaImagePicker.selectMultiple
-                    checked: mediaImagePicker.selectMultiple = mediaImagePicker.selectMultiple
+                    checked: mediaImagePicker.selectMultiple
                 }
             }
 
-//            Button {
-//                text: qsTr("Camera")
-//            }
+            Button {
+                text: qsTr("Camera")
+                onClicked: {
+                    mediaImagePicker.sourceType = MediaPicker.Camera
+                    mediaImagePicker.open()
+                }
+            }
 
             Label {
                 text: `Images Selected: ${JSON.stringify(mediaImagePicker.fileUrls, null, 4)}`

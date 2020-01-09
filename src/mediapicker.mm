@@ -8,6 +8,7 @@
 @interface QiOSViewDelegate: UIImagePickerController<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 - (instancetype) initQiOSViewDelegate:(MediaPickerPlugin *) mediaPicker;
 - (void) alertMessage:(NSString *) message;
+- (void) didFinishSaving:(UIImage *) image didFinishSavingWithError:(NSError *) error contextInfo:(void *) contextInfo;
 @end
 
 @implementation QiOSViewDelegate
@@ -24,19 +25,20 @@
     m_rootWindow = [UIApplication sharedApplication].keyWindow;
     m_viewController = m_rootWindow.rootViewController;
 
-    if (![UIImagePickerController isSourceTypeAvailable: static_cast<UIImagePickerControllerSourceType>(UIImagePickerControllerSourceTypePhotoLibrary)]) {
+    UIImagePickerControllerSourceType sourceType = m_mediaPicker->sourceType() ? UIImagePickerControllerSourceTypeCamera : UIImagePickerControllerSourceTypePhotoLibrary;
+    if (![UIImagePickerController isSourceTypeAvailable: sourceType]) {
         [self alertMessage:@"This operation is not supported in this device"];
         return self;
     }
 
     UIImagePickerController *picker = [[UIImagePickerController alloc] init];
-    picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
+    picker.sourceType = sourceType;
 
     picker.editing = NO;
     picker.mediaTypes = [NSArray arrayWithObject:(NSString *) kUTTypeImage];
     if (m_mediaPicker->contentType() == MediaPickerPlugin::Video) {
         picker.mediaTypes = @[(NSString *) kUTTypeMovie, (NSString *) kUTTypeAVIMovie, (NSString *) kUTTypeVideo, (NSString *) kUTTypeMPEG4];
-//        picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
+        picker.videoQuality = UIImagePickerControllerQualityTypeHigh;
     }
 
     picker.delegate = self;
@@ -50,19 +52,25 @@
     Q_UNUSED(picker);
     [m_viewController dismissViewControllerAnimated:YES completion:nil];
 
-    NSURL *url;
-    if ([info[UIImagePickerControllerMediaType]  isEqual: @"public.movie"]) {
-        url = info[UIImagePickerControllerMediaURL];
+    if (m_mediaPicker->sourceType() == MediaPickerPlugin::Camera) {
+        UIImage *image = info[UIImagePickerControllerOriginalImage];
+        UIImageWriteToSavedPhotosAlbum(image, self, @selector(didFinishSaving:didFinishSavingWithError:contextInfo:), nil);
+
     } else {
-        if (@available(iOS 11.0, *))
-            url = info[UIImagePickerControllerImageURL];
-        else
-            url = info[UIImagePickerControllerReferenceURL];
+        NSURL *url;
+        if ([info[UIImagePickerControllerMediaType]  isEqual: @"public.movie"]) {
+            url = info[UIImagePickerControllerMediaURL];
+        } else {
+            if (@available(iOS 11.0, *))
+                url = info[UIImagePickerControllerImageURL];
+            else
+                url = info[UIImagePickerControllerReferenceURL];
+        }
+        QList<QUrl> urls;
+        QUrl fileUrl = QString::fromNSString(url.description);
+        urls.append(fileUrl);
+        m_mediaPicker->setFileUrls(urls);
     }
-    QList<QUrl> urls;
-    QUrl fileUrl = QString::fromNSString(url.description);
-    urls.append(fileUrl);
-    m_mediaPicker->setFileUrls(urls);
 }
 
 - (void) alertMessage:(NSString *) message
@@ -83,6 +91,13 @@
     [m_rootWindow makeKeyAndVisible];
     [m_viewController presentViewController:alert animated:YES completion:nil];
 }
+
+- (void) didFinishSaving:(UIImage *) image didFinishSavingWithError:(NSError *) error contextInfo:(void *) contextInfo {
+    Q_UNUSED(image)
+    Q_UNUSED(error)
+    Q_UNUSED(contextInfo)
+}
+
 @end
 
 void MediaPickerPlugin::open()
