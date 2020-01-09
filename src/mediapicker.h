@@ -10,11 +10,7 @@
 #include <QtAndroidExtras>
 #endif
 
-#if defined (Q_OS_ANDROID)
-class MediaPickerPlugin : public QQuickItem, public QAndroidActivityResultReceiver
-#else
 class MediaPickerPlugin : public QQuickItem
-#endif
 {
     Q_OBJECT
     Q_PROPERTY(quint16 contentType READ contentType WRITE setContentType NOTIFY contentTypeChanged)
@@ -30,7 +26,6 @@ public:
     Q_INVOKABLE void open();
 
 #if defined (Q_OS_ANDROID)
-    virtual void handleActivityResult(int receiverRequestCode, int resultCode, const QAndroidJniObject &data) override;
     void actionPick();
     void actionCamera();
 #endif
