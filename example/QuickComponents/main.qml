@@ -49,7 +49,9 @@ ApplicationWindow {
             }
 
             Label {
+                width: parent.width
                 text: `Images Selected: ${JSON.stringify(mediaImagePicker.fileUrls, null, 4)}`
+                wrapMode: Label.WordWrap
             }
 
             ImageCarousel {

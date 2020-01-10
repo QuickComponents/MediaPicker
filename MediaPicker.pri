@@ -12,7 +12,7 @@ android {
     SOURCES += \
         $$PWD/src/mediapicker.cpp
 } else: ios {
-    LIBS += -framework Foundation -framework UIKit
+    LIBS += -framework Foundation -framework UIKit -framework Photos
 
     HEADERS += \
         $$PWD/src/mediapicker.h

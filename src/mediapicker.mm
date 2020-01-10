@@ -2,8 +2,11 @@
 #include <QCoreApplication>
 #include <QUrl>
 #include <QImage>
-#include <UIKit/UIKit.h>
+
+#import <UIKit/UIKit.h>
 #import <MobileCoreServices/MobileCoreServices.h>
+#import <MobileCoreServices/UTCoreTypes.h>
+#import <Photos/Photos.h>
 
 @interface QiOSViewDelegate: UIImagePickerController<UIImagePickerControllerDelegate, UINavigationControllerDelegate>
 - (instancetype) initQiOSViewDelegate:(MediaPickerPlugin *) mediaPicker;
@@ -52,12 +55,16 @@
     Q_UNUSED(picker);
     [m_viewController dismissViewControllerAnimated:YES completion:nil];
 
+    NSURL *url = nil;
     if (m_mediaPicker->sourceType() == MediaPickerPlugin::Camera) {
-        UIImage *image = info[UIImagePickerControllerOriginalImage];
-        UIImageWriteToSavedPhotosAlbum(image, self, @selector(didFinishSaving:didFinishSavingWithError:contextInfo:), nil);
-
+        if ([info[UIImagePickerControllerMediaType]  isEqual: @"public.movie"]) {
+            url = info[UIImagePickerControllerMediaURL];
+            UISaveVideoAtPathToSavedPhotosAlbum([url path], nil, nil, nil);
+        } else {
+            UIImage *image = info[UIImagePickerControllerOriginalImage];
+            UIImageWriteToSavedPhotosAlbum(image, self, @selector(didFinishSaving:didFinishSavingWithError:contextInfo:), nil);
+        }
     } else {
-        NSURL *url;
         if ([info[UIImagePickerControllerMediaType]  isEqual: @"public.movie"]) {
             url = info[UIImagePickerControllerMediaURL];
         } else {
@@ -66,10 +73,10 @@
             else
                 url = info[UIImagePickerControllerReferenceURL];
         }
-        QList<QUrl> urls;
+    }
+    if (url) {
         QUrl fileUrl = QString::fromNSString(url.description);
-        urls.append(fileUrl);
-        m_mediaPicker->setFileUrls(urls);
+        m_mediaPicker->setFileUrls(QList<QUrl>() << fileUrl);
     }
 }
 
@@ -96,6 +103,50 @@
     Q_UNUSED(image)
     Q_UNUSED(error)
     Q_UNUSED(contextInfo)
+
+    /*
+    PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
+    fetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:YES]];
+    PHFetchResult *fetchResult = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:fetchOptions];
+    PHAsset *asset = nil;
+    if (fetchResult && fetchResult.count > 0) {
+        asset = [fetchResult lastObject];
+        NSLog(@"Asset %@", asset.localIdentifier);
+    }
+    PHImageManager *manager = [PHImageManager defaultManager];
+    PHImageRequestOptions *options = [PHImageRequestOptions new];
+    options.synchronous = YES;
+    options.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+    options.resizeMode = PHImageRequestOptionsResizeModeNone;
+    options.networkAccessAllowed = NO;
+
+    [manager requestImageForAsset:asset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeDefault options:options resultHandler:^(UIImage *resultImage, NSDictionary *info){
+        NSLog(@"image %@", resultImage);
+        NSLog(@"info %@", info);
+        NSURL *filePath = [info valueForKeyPath:@"PHImageFileURLKey"];
+        NSLog(@"filePath %@", filePath);
+    }];
+    */
+
+//    get image name
+    /*
+    NSString *str = @"";
+    PHFetchOptions *fetchOptions = [[PHFetchOptions alloc] init];
+    fetchOptions.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:YES]];
+    PHFetchResult *fetchResult = [PHAsset fetchAssetsWithMediaType:PHAssetMediaTypeImage options:fetchOptions];
+    if (fetchResult != nil && fetchResult.count > 0) {
+        str = [[fetchResult lastObject] filename];
+    }
+    */
+
+//    get path
+//    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSPicturesDirectory, NSUserDomainMask, YES);
+//    NSString *partialPath = [paths objectAtIndex:0];
+//    NSString *myName = str;
+//    NSString *path = [NSString stringWithFormat:@"file://%@/%@", partialPath, myName];
+
+//    QUrl url = QUrl(QString::fromNSString(path));
+//    m_mediaPicker->setFileUrls(QList<QUrl>() << url);
 }
 
 @end
