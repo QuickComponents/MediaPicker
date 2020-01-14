@@ -61,8 +61,20 @@
             url = info[UIImagePickerControllerMediaURL];
             UISaveVideoAtPathToSavedPhotosAlbum([url path], nil, nil, nil);
         } else {
-            UIImage *image = info[UIImagePickerControllerOriginalImage];
-            UIImageWriteToSavedPhotosAlbum(image, self, @selector(didFinishSaving:didFinishSavingWithError:contextInfo:), nil);
+//            UIImage *image = info[UIImagePickerControllerOriginalImage];
+//            UIImageWriteToSavedPhotosAlbum(image, self, @selector(didFinishSaving:didFinishSavingWithError:contextInfo:), nil);
+            UIImage *image = [[UIImage alloc] init];
+            image = [info objectForKey:UIImagePickerControllerOriginalImage];
+            NSURL *imagePath = [info objectForKey:UIImagePickerControllerReferenceURL];
+            NSString *imageName = [imagePath lastPathComponent];
+
+            NSData *imageData;
+            NSString *extensionOfImage = [imageName substringFromIndex:[imageName rangeOfString:@"."].location + 1];
+            if ([extensionOfImage isEqualToString:@"jpg"])
+                imageData = UIImageJPEGRepresentation(image, 1.0);
+            else
+                imageData = UIImagePNGRepresentation(image);
+            NSLog(@"Image name: %@", imageName);
         }
     } else {
         if ([info[UIImagePickerControllerMediaType]  isEqual: @"public.movie"]) {
