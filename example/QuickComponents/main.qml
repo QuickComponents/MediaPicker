@@ -1,5 +1,6 @@
 import QtQuick 2.14
 import QtQuick.Controls 2.14
+import QtMultimedia 5.14
 
 import QuickComponents 1.0
 
@@ -91,7 +92,21 @@ ApplicationWindow {
             }
 
             Label {
+                width: parent.width
                 text: `Videos Selected: ${JSON.stringify(mediaVideoPicker.fileUrls, null, 4)}`
+                wrapMode: Label.WordWrap
+            }
+
+            Video {
+                id: video
+                width: parent.width - parent.padding * 2
+                height: 600
+                source: mediaVideoPicker.fileUrl
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: video.playbackState === MediaPlayer.PlayingState ? video.pause() : video.play()
+                }
             }
         }
     }
